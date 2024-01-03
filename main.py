@@ -1,7 +1,8 @@
 import numpy as np
+import math
 from pint import UnitRegistry
 
-UR = UnitRegistry()
+UR = UnitRegistry(system='mks')
 Q_ = UR.Quantity
 
 siEnergy = "joule/kilogram/degK"
@@ -15,7 +16,8 @@ class Engine:
     cstar = Q_(5000,"feet/second")
     Dt = Q_(5,"centimeter") #throat diameter
     dt = Dt.to("inch")
-    R = Q_(1,"centimeter")
+    Dc = Q_(10,'centimeter')    #chamber diameter
+    R = Q_(1,"centimeter")  #Radius of throat curvature
     r = R.to("inch")
     At_Ac = 0.1
     wallThick = 5 * UR.millimeter
@@ -50,6 +52,15 @@ class Coolant:
 
     Pr = Visc*Cp/Cond
 
+    Hc = Q_(300,"watt/meter**2/degK")
+    mdot = 1 * UR.kilogram / UR.second
+
+dx = 0.01 * UR.meter
+
+
+As = math.pi*Engine.Dc*dx
+As = As.to_base_units()
+
 
 # Analysis
 sig = 1/((0.5*Comb.Twg_Tc*(1 + ((Comb.gam-1)/2)*Comb.Mc**2) + 0.5)**0.68*(1 + ((Comb.gam-1)/2)*Comb.Mc**2)**0.12)
@@ -58,9 +69,27 @@ hg = (0.026/Engine.dt**0.2)*(Comb.visc**0.2*Comb.cp/Comb.Pr**0.6)*(Engine.pc*g/E
 
 Hg = hg.to("watt/meter**2/degK")
 
+
 Tc0 = 300 * UR.degK
 
 T0 = 2500 * UR.degK
 
 #qpp = (T0 - Tc0)/((1/Hg) + (wallThick/wallK) + (1/))
-print(Coolant.Visc)
+
+Tc = Tc0
+for n in range(20):
+
+    Tin = Tc
+
+    R = 1/(Hg*As) + (Engine.wallThick/(Engine.wallK*As)) + 1/(Coolant.Hc*As)
+
+    q = (T0-Tin)/R
+
+    Tout = q/(Coolant.mdot*Coolant.Cp) + Tin
+
+    Tc = Tout.to_base_units()
+    print(Tc)
+
+
+
+    
