@@ -2,9 +2,13 @@ import numpy as np
 import math
 from pint import UnitRegistry, get_application_registry
 from bartz import Bartz
+import matplotlib.pyplot as plt
+
+
 
 UR = UnitRegistry(system='mks')
 UR = get_application_registry()
+UR.setup_matplotlib(True)
 Q_ = UR.Quantity
 
 g = Q_(32.2,"feet/second**2")
@@ -49,16 +53,18 @@ class Coolant:
     mdot = 1 * UR.kilogram / UR.second
 
 
-dx = 0.01 * UR.meter
+cells = 100
+dx = Engine.chamberLength/cells
 
+lenVector = np.arange(0,Engine.chamberLength.to_base_units()/UR.meter,dx.to_base_units()/UR.meter) * UR.meter
+
+
+#Discritized chamber surface area
 As = (math.pi*Engine.Dc*dx).to_base_units()
-
+print(As)
 
 #Bartz Equation
 hg = Bartz(Engine.Dt,Comb.visc,Comb.cp,Comb.Pr,Engine.pc,Comb.Mc,Comb.gam,Engine.R,Engine.cstar,Engine.At_Ac,Comb.Twg_Tc)
-
-print(hg)
-
 
 #Analysis
 Tc0 = 300 * UR.degK
@@ -68,9 +74,8 @@ T0 = 2500 * UR.degK
 Tc = Tc0
 
 T = np.array(Tc)
-
 #Range here represents cell number (0-19) with a delta length of dx meters
-for n in range(20):
+for n in lenVector:
 
     R = 1/(hg*As) + (Engine.wallThick/(Engine.wallK*As)) + 1/(Coolant.hc*As)
 
@@ -82,5 +87,12 @@ for n in range(20):
     T = np.append(T,Tout / UR.degK)
 
     Tc = Tout
+T = T[1:] * UR.degK   #Removing initial cell and giving units back
 
-print(T)
+
+
+fig, ax = plt.subplots()
+ax.plot(lenVector,T)
+ax.xaxis.set_units(UR.centimeter)
+plt.grid(True)
+plt.show()
