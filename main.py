@@ -74,22 +74,23 @@ Tc0 = 300 * UR.degK
 
 T0 = 2500 * UR.degK
 
-#qpp = (T0 - Tc0)/((1/Hg) + (wallThick/wallK) + (1/))
-
 Tc = Tc0
-for n in range(20):
 
-    Tin = Tc
+T = np.array(Tc)
+for n in range(20):
 
     R = 1/(Hg*As) + (Engine.wallThick/(Engine.wallK*As)) + 1/(Coolant.Hc*As)
 
-    q = (T0-Tin)/R
+    q = (T0-Tc)/R
 
-    Tout = q/(Coolant.mdot*Coolant.Cp) + Tin
+    Tout = q/(Coolant.mdot*Coolant.Cp) + Tc
+    Tout = Tout.to_base_units()
 
-    Tc = Tout.to_base_units()
-    print(Tc)
+    T = np.append(T,Tout / UR.degK)
 
+    Tc = Tout
+
+print(T)
 
 
     
