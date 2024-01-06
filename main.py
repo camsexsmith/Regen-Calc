@@ -71,28 +71,42 @@ Tc0 = 300 * UR.degK
 
 T0 = 2500 * UR.degK
 
-Tc = Tc0
+Tcoolant = Tc0
 
-T = np.array(Tc)
+TcoolantVec = np.array(Tcoolant)
+TgwVec = np.array(Tcoolant)
+TcwVec = np.array(Tcoolant)
 #Range here represents cell number (0-19) with a delta length of dx meters
 for n in lenVector:
 
     R = 1/(hg*As) + (Engine.wallThick/(Engine.wallK*As)) + 1/(Coolant.hc*As)
 
-    q = (T0-Tc)/R
+    q = (T0-Tcoolant)/R
 
-    Tout = q/(Coolant.mdot*Coolant.cp) + Tc
+    Tout = q/(Coolant.mdot*Coolant.cp) + Tcoolant
     Tout = Tout.to_base_units()
 
-    T = np.append(T,Tout / UR.degK)
+    TcoolantVec = np.append(TcoolantVec,Tout / UR.degK)
 
-    Tc = Tout
-T = T[1:] * UR.degK   #Removing initial cell and giving units back
+    Tcoolant = Tout
 
+    Tgw = T0 - q/(As*hg)
+
+    TgwVec = np.append(TgwVec,Tgw / UR.degK)
+
+    Tcw = Tgw - Engine.wallThick*q/(Engine.wallK*As)
+
+    TcwVec = np.append(TcwVec,Tcw / UR.degK)
+
+
+TcoolantVec = TcoolantVec[1:] * UR.degK   #Removing initial cell and giving units back
+TgwVec = TgwVec[1:] * UR.degK
+TcwVec = TcwVec[1:] * UR.degK
 
 
 fig, ax = plt.subplots()
-ax.plot(lenVector,T)
+ax.plot(lenVector,TcwVec)
 ax.xaxis.set_units(UR.centimeter)
 plt.grid(True)
 plt.show()
+
