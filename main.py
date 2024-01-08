@@ -46,11 +46,21 @@ class Coolant:
     cond = Q_(0.078,"Btu/feet/hour/degF")
     visc = Q_(100e-5,"pound/feet/second")
     cp = Q_(0.49,"Btu/pound/degF")
+    rho = Q_(800,"kilogram/meter**3")
+    mdot = Q_(1,"kilogram/second")
 
     Pr = (visc*cp/cond).to_base_units()
 
+    passageID = (Engine.Dc + Engine.wallThick).to_base_units()
+    passageThick = 1 * UR.centimeter
+
+    passageOD = (passageID + passageThick*2).to_base_units()
+
+    print(passageOD)
+
     hc = Q_(300,"watt/meter**2/degK")
-    mdot = 1 * UR.kilogram / UR.second
+
+
 
 
 cells = 100
@@ -109,4 +119,3 @@ ax.plot(lenVector,TcwVec)
 ax.xaxis.set_units(UR.centimeter)
 plt.grid(True)
 plt.show()
-
