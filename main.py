@@ -11,7 +11,6 @@ UR = get_application_registry()
 UR.setup_matplotlib(True)
 Q_ = UR.Quantity
 
-g = Q_(32.2,"feet/second**2")
 
 # Engine operating conditions
 class Engine:
@@ -19,9 +18,9 @@ class Engine:
     cstar = Q_(2000,"meter/second")
     Dt = Q_(5,"centimeter") #throat diameter
     Dc = Q_(10,'centimeter')    #chamber diameter
-    R = Q_(1,"centimeter")  #Radius of throat curvature
+    R = Q_(3,"centimeter")  #Radius of throat curvature
     At_Ac = 0.1
-    wallThick = 5 * UR.millimeter
+    wallThick = 3 * UR.millimeter
     wallK = Q_(16.3,"watt/meter/degK")
 
     chamberLength = 10 * UR.centimeter
@@ -47,7 +46,7 @@ class Coolant:
     visc = Q_(100e-5,"pound/feet/second")
     cp = Q_(0.49,"Btu/pound/degF")
     rho = Q_(800,"kilogram/meter**3")
-    mdot = Q_(1,"kilogram/second")
+    mdot = Q_(0.5,"kilogram/second")
 
     Pr = (visc*cp/cond).to_base_units()
 
@@ -56,11 +55,9 @@ class Coolant:
 
     passageOD = (passageID + passageThick*2).to_base_units()
 
-    print(passageOD)
-
-    hc = Q_(300,"watt/meter**2/degK")
-
-
+    #Dittis-Boulter equation for turbulent flow
+    hc = 0.023*cond/passageID*(4*mdot*passageID/(math.pi*visc*(passageOD**2 - passageID**2)))**(4/5)*(visc*cp/cond)**0.4
+    hc = hc.to("watt/meter**2/degK")
 
 
 cells = 100
@@ -71,13 +68,12 @@ lenVector = np.arange(0,Engine.chamberLength.to_base_units()/UR.meter,dx.to_base
 
 #Discritized chamber surface area
 As = (math.pi*Engine.Dc*dx).to_base_units()
-print(As)
 
 #Bartz Equation
 hg = Bartz(Engine.Dt,Comb.visc,Comb.cp,Comb.Pr,Engine.pc,Comb.Mc,Comb.gam,Engine.R,Engine.cstar,Engine.At_Ac,Comb.Twg_Tc)
 
 #Analysis
-Tc0 = 300 * UR.degK
+Tc0 = 280 * UR.degK
 
 T0 = 2500 * UR.degK
 
@@ -115,7 +111,7 @@ TcwVec = TcwVec[1:] * UR.degK
 
 
 fig, ax = plt.subplots()
-ax.plot(lenVector,TcwVec)
+ax.plot(lenVector,TgwVec)
 ax.xaxis.set_units(UR.centimeter)
 plt.grid(True)
 plt.show()
